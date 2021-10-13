@@ -9,7 +9,7 @@ denoEnv.buildDenoBinary {
   pname = "velociraptor";
   version = "1.2.0";
   lockfile = ./lock.json;
-  depSha256 = "sha256-t/C9h3A6QIHquMs5eXbmEXINaEmKwE6HLzjomeraAao=";
+  depSha256 = "sha256-KSy1wm56Xzjj9pi8W4sjrfMplAou1rvK7ltzq20PmZk=";
   denoOpts = "-A";
 
   src = fetchFromGitHub {

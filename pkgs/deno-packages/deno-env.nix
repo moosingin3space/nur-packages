@@ -18,12 +18,13 @@ let
 
         # We now clear out .metadata.json files since those include non-reproducible
         # information in them, like the time of the HTTP request made.
-        find ./denodir/deps -type f -name '*.metadata.json' -print -exec deno run --allow-read --allow-write ${normalizeScript} {} \;
+        mkdir -p ops_denodir
+        find denodir/deps/ -type f -name '*.metadata.json' -exec env DENO_DIR=ops_denodir deno run -q --allow-read --allow-write ${normalizeScript} {} \;
         '';
         installPhase = ''
             tar --owner=0 --group=0 --numeric-owner --format=gnu \
                 --sort=name --mtime="@$SOURCE_DATE_EPOCH" \
-                -czf $out denodir/deps/ denodir/gen/
+                -czf $out denodir/deps/
         '';
 
         outputHashAlgo = "sha256";
@@ -48,7 +49,7 @@ let
         dontStrip = true;
 
         postUnpack = ''
-            tar -xvf ${denoDeps} -C $sourceRoot
+            tar -xf ${denoDeps} -C $sourceRoot
         '';
 
         buildPhase = ''
