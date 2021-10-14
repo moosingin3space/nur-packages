@@ -1,4 +1,4 @@
-{ stdenv, deno }:
+{ stdenv, deno, makeWrapper }:
 
 let 
     vendoredDenoDeps = { pname, src, entrypoint, lockfile, sha256 }:
@@ -61,6 +61,38 @@ let
             install -t $out/bin ${binname}
         '';
     };
+
+    buildBundledDenoExecutable = { entrypoint, binname, pname, lockfile, depSha256, version, src,
+    denoOpts ? "" }:
+    let
+        denoDeps = vendoredDenoDeps {
+            inherit pname;
+            inherit src;
+            entrypoint = "${src}/${entrypoint}";
+            inherit lockfile;
+            sha256 = depSha256;
+        };
+    in
+    stdenv.mkDerivation {
+        inherit pname version src;
+        buildInputs = [ deno ];
+        nativeBuildInputs = [ makeWrapper ];
+
+        postUnpack = ''
+            tar -xf ${denoDeps} -C $sourceRoot
+        '';
+
+        buildPhase = ''
+            DENO_DIR=$PWD/denodir deno info
+            DENO_DIR=$PWD/denodir deno bundle --lock ${lockfile} ${entrypoint} ${binname}.bundle.js
+        '';
+
+        installPhase = ''
+            mkdir -p $out/{bin,lib}
+            install -t $out/lib ${binname}.bundle.js
+            makeWrapper ${deno}/bin/deno $out/bin/${binname} --argv0 ${binname} --unset DENO_DIR --add-flags "run ${denoOpts} $out/lib/${binname}.bundle.js"
+        '';
+    };
 in {
-    inherit buildDenoBinary;
+    inherit buildDenoBinary buildBundledDenoExecutable;
 }

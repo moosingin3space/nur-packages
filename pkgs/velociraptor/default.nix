@@ -1,11 +1,11 @@
-{ stdenv, lib, deno, fetchFromGitHub }:
+{ stdenv, lib, deno, makeWrapper, fetchFromGitHub }:
 
 let 
   denoEnv = import ../deno-packages/deno-env.nix {
-    inherit stdenv deno;
+    inherit stdenv deno makeWrapper;
   };
 in
-denoEnv.buildDenoBinary {
+denoEnv.buildBundledDenoExecutable {
   pname = "velociraptor";
   version = "1.2.0";
   lockfile = ./lock.json;
